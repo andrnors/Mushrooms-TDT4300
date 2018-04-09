@@ -30,7 +30,7 @@
 
 import pandas as pd
 import numpy as np
-
+import time
 
 # ## Problem
 # 
@@ -164,7 +164,8 @@ def train_test_split(X, y, test_size=0.2):
     """
     ### START CODE HERE ###
     ts = 1-test_size
-    seed = np.random.seed(1)
+
+    np.random.seed(1)
 
     np.random.shuffle(X)
     np.random.shuffle(y)
@@ -217,35 +218,37 @@ assert len(y_test) == 2681
 
 ### START CODE HERE ###
 from math import sqrt
+start_time = time.time()
 
 
 def similarity(a, b):
-    distance = 0
-    for index in range(len(a)): # can use the length of a, because a and b will have equal length
-        distance += pow((a[index] - b[index]), 2)
-    return sqrt(distance)
+    equals = 0.0
+
+    for elem in zip(a, b):
+        if elem[0] == elem[1]:
+            equals += 1
+
+    return equals / len(a)
 
 
 def get_neighbours(X_true, X_pred_instance, k=5):
     distances = []
     for index, value in enumerate(X_true):
         dist = similarity(X_pred_instance, X_true[index])
-        distances.append(((index, value), dist))
-    sorted_distances = sorted(distances, key=lambda x: x[1])
-
-    neighbours = sorted_distances[:5]
-    return neighbours
+        distances.append((index, dist))
+    sortedlist = sorted(distances, key=lambda x: x[1])[:k]
+    return sortedlist
 
 
-def find_major_class(neighbours, y, X_true):
+def find_major_class(neighbours, y):
     edible, poison = 0, 0
 
     for neighbour in neighbours:
-        if neighbour[0][1] in X_true:
-            if y[neighbour[0][0]] == 1:
-                edible += 1
-            else:
-                poison += 1
+        z = y[neighbour[0]]
+        if y[neighbour[0]] == 0:
+            edible += 1
+        else:
+            poison += 1
 
     if edible < poison:
         m = 1
@@ -280,10 +283,7 @@ def knn(X_true, y_true, X_pred, k=5):
         if index % 250 == 0:
             print("element no: ", index)
         neighbours = get_neighbours(X_true, X_pred[index],k)
-        y_pred.append(find_major_class(neighbours, y_true, X_true))
-
-
-
+        y_pred.append(find_major_class(neighbours, y_true))
     ### END CODE HERE ### 
     return y_pred
 
@@ -291,6 +291,7 @@ def knn(X_true, y_true, X_pred, k=5):
 
 
 y_hat = knn(X_train, y_train, X_test, k=5)
+
 
 
 # First ten predictions of the test set.
@@ -324,7 +325,11 @@ def evaluate(y_true, y_pred):
         accuracy
     """
     ### START CODE HERE ### 
-
+    response = 0
+    for index in range(len(y_true)):
+        if y_true[index] == y_pred[index]:
+            response +=1
+    accuracy = response/len(y_true)
     ### END CODE HERE ### 
     return accuracy
 
@@ -342,6 +347,7 @@ print('accuracy =', accuracy)
 
 
 print('misclassified =', sum(abs(y_hat - y_test)))
+print("--- %s seconds ---" % (time.time() - start_time))
 
 
 # How balanced is our test set?
