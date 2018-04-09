@@ -164,11 +164,12 @@ def train_test_split(X, y, test_size=0.2):
     """
     ### START CODE HERE ###
     ts = 1-test_size
+    seed = np.random.seed(1)
 
     np.random.shuffle(X)
     np.random.shuffle(y)
 
-    X_train, X_test = X[:int(len(X) * 0.67), :], X[int(len(X) * 0.67):, :]
+    X_train, X_test = X[:int(len(X) * 0.67)], X[int(len(X) * 0.67):]
     y_train, y_test = y[:int(len(X) * 0.67)], y[int(len(X) * 0.67):]
 
     ### END CODE HERE ###
