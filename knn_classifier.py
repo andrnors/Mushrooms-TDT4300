@@ -31,6 +31,7 @@
 import pandas as pd
 import numpy as np
 import time
+import random
 
 # ## Problem
 # 
@@ -163,15 +164,14 @@ def train_test_split(X, y, test_size=0.2):
         train-test splits (X-train, X-test, y-train, y-test)
     """
     ### START CODE HERE ###
-    ts = 1-test_size
+    ts = int((1-test_size) * len(X))  # Compute percentage to split on
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(X)  # shuffle X
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(y)  # shuffle y
 
-    np.random.seed(1)
-
-    np.random.shuffle(X)
-    np.random.shuffle(y)
-
-    X_train, X_test = X[:int(len(X) * 0.67)], X[int(len(X) * 0.67):]
-    y_train, y_test = y[:int(len(X) * 0.67)], y[int(len(X) * 0.67):]
+    X_train, X_test = X[:ts], X[ts:]  # Split X
+    y_train, y_test = y[:ts], y[ts:]  # Split y
 
     ### END CODE HERE ###
     return X_train, X_test, y_train, y_test
@@ -222,13 +222,7 @@ start_time = time.time()
 
 
 def similarity(a, b):
-    equals = 0.0
-
-    for elem in zip(a, b):
-        if elem[0] == elem[1]:
-            equals += 1
-
-    return equals / len(a)
+    return np.sqrt(np.sum((a-b)**2, axis=0))
 
 
 def get_neighbours(X_true, X_pred_instance, k=5):
@@ -242,20 +236,22 @@ def get_neighbours(X_true, X_pred_instance, k=5):
 
 def find_major_class(neighbours, y):
     edible, poison = 0, 0
-
     for neighbour in neighbours:
-        z = y[neighbour[0]]
+        w = 1/(neighbour[1])**2
         if y[neighbour[0]] == 0:
-            edible += 1
+            edible += w
         else:
-            poison += 1
-
+            poison += w
     if edible < poison:
         m = 1
     elif edible > poison:
         m = 0
     else:
-        m = np.random.randint(0,2)
+        # breaking tie randomly
+        if random.randint(0, 1) == 1:
+            m = 1
+        else:
+            m = 0
     return m
 
 ### END CODE HERE ###
