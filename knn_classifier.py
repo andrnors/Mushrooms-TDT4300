@@ -136,8 +136,8 @@ y_array = y_df.as_matrix()
 # In[ ]:
 
 
-print('X =', X_array)
-print('y =', y_array)
+# print('X =', X_array)
+# print('y =', y_array)
 
 
 # Next, we need to split the attributes and classes into training sets and test sets.
@@ -185,11 +185,11 @@ X_train, X_test, y_train, y_test = train_test_split(X_array, y_array, 0.33)
 
 # In[ ]:
 
-print('X_train =', X_train)
-print('y_train =', y_train)
-print('X_test =', X_test)
-print('y_test =', y_test)
-
+# print('X_train =', X_train)
+# print('y_train =', y_train)
+# print('X_test =', X_test)
+# print('y_test =', y_test)
+#
 
 # A quick sanity check...
 
@@ -216,12 +216,48 @@ assert len(y_test) == 2681
 # Use this section to place any "helper" code for the `knn()` function.
 
 ### START CODE HERE ###
+from math import sqrt
+
+
+def similarity(a, b):
+    distance = 0
+    for index in range(len(a)): # can use the length of a, because a and b will have equal length
+        distance += pow((a[index] - b[index]), 2)
+    return sqrt(distance)
+
+
+def get_neighbours(X_true, X_pred_instance, k=5):
+    distances = []
+    for index, value in enumerate(X_true):
+        dist = similarity(X_pred_instance, X_true[index])
+        distances.append(((index, value), dist))
+    sorted_distances = sorted(distances, key=lambda x: x[1])
+
+    neighbours = sorted_distances[:5]
+    return neighbours
+
+
+def find_major_class(neighbours, y, X_true):
+    edible, poison = 0, 0
+
+    for neighbour in neighbours:
+        if neighbour[0][1] in X_true:
+            if y[neighbour[0][0]] == 1:
+                edible += 1
+            else:
+                poison += 1
+
+    if edible < poison:
+        m = 1
+    elif edible > poison:
+        m = 0
+    else:
+        m = np.random.randint(0,2)
+    return m
 
 ### END CODE HERE ###
 
-
 # In[ ]:
-
 
 def knn(X_true, y_true, X_pred, k=5):
     """
@@ -238,11 +274,18 @@ def knn(X_true, y_true, X_pred, k=5):
     :return
         predicted classes
     """
-    ### START CODE HERE ### 
+    ### START CODE HERE ###
+    y_pred = []
+    for index in range(len(X_pred)):
+        if index % 250 == 0:
+            print("element no: ", index)
+        neighbours = get_neighbours(X_true, X_pred[index],k)
+        y_pred.append(find_major_class(neighbours, y_true, X_true))
+
+
 
     ### END CODE HERE ### 
     return y_pred
-
 
 # In[ ]:
 
@@ -255,7 +298,7 @@ y_hat = knn(X_train, y_train, X_test, k=5)
 # In[ ]:
 
 
-y_hat[:10]
+print(y_hat[:10])
 
 
 # ## Evaluation
