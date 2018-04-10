@@ -163,15 +163,14 @@ def train_test_split(X, y, test_size=0.2):
         train-test splits (X-train, X-test, y-train, y-test)
     """
     ### START CODE HERE ###
-    ts = 1-test_size
+    ts = int((1-test_size) * len(X))  # Compute percentage to split on
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(X)  # shuffle X
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(y)  # shuffle y
 
-    np.random.seed(1)
-
-    np.random.shuffle(X)
-    np.random.shuffle(y)
-
-    X_train, X_test = X[:int(len(X) * 0.67)], X[int(len(X) * 0.67):]
-    y_train, y_test = y[:int(len(X) * 0.67)], y[int(len(X) * 0.67):]
+    X_train, X_test = X[:ts], X[ts:]  # Split X
+    y_train, y_test = y[:ts], y[ts:]  # Split y
 
     ### END CODE HERE ###
     return X_train, X_test, y_train, y_test
@@ -217,50 +216,43 @@ assert len(y_test) == 2681
 # Use this section to place any "helper" code for the `knn()` function.
 
 ### START CODE HERE ###
-from math import sqrt
-start_time = time.time()
+start_time = time.time()  # only added to calculate runtime
 
 
 def similarity(a, b):
-    equals = 0.0
-
-    for elem in zip(a, b):
-        if elem[0] == elem[1]:
-            equals += 1
-
-    return equals / len(a)
+    return np.sqrt(np.sum(np.square(a-b)))  # returns euclidean distance between a and b
 
 
 def get_neighbours(X_true, X_pred_instance, k=5):
-    distances = []
+    distances = []  # init empty distance list
     for index, value in enumerate(X_true):
-        dist = similarity(X_pred_instance, X_true[index])
-        distances.append((index, dist))
-    sortedlist = sorted(distances, key=lambda x: x[1])[:k]
-    return sortedlist
+        dist = similarity(X_pred_instance, X_true[index])  # calculate similarity distance
+        distances.append((index, dist))  # add index and distance to distances list
+    # sorts entire list on distances in decreasing order, and slices K-first elements
+    sorted_list = sorted(distances, key=lambda x: x[1])[:k]
+    return sorted_list  # return K closest neighbours
 
 
-def find_major_class(neighbours, y):
+def find_major_weighted_class(neighbours, y):
     edible, poison = 0, 0
-
-    for neighbour in neighbours:
-        z = y[neighbour[0]]
-        if y[neighbour[0]] == 0:
-            edible += 1
+    for neighbour in neighbours:  # iterate through k-nn
+        weight = 1/(neighbour[1])**2  # calculate weights
+        if y[neighbour[0]] == 0:  # check if it is edible or not
+            edible += weight  # add weight to class
         else:
-            poison += 1
-
+            poison += weight  # add weight to class
     if edible < poison:
         m = 1
     elif edible > poison:
         m = 0
-    else:
-        m = np.random.randint(0,2)
-    return m
+    else:  # if they are equal, just return random 0 or 1
+        return np.random.randint(0, 2)
+    return m  # return class with highest weight
 
 ### END CODE HERE ###
 
 # In[ ]:
+
 
 def knn(X_true, y_true, X_pred, k=5):
     """
@@ -279,11 +271,12 @@ def knn(X_true, y_true, X_pred, k=5):
     """
     ### START CODE HERE ###
     y_pred = []
+    print("Brace yourself, this takes some time (approximately 200 sec)")
     for index in range(len(X_pred)):
-        if index % 250 == 0:
-            print("element no: ", index)
-        neighbours = get_neighbours(X_true, X_pred[index],k)
-        y_pred.append(find_major_class(neighbours, y_true))
+        if index % 500 == 0:
+            print("Percentage finished:", (index / len(X_pred)) * 100)
+        neighbours = get_neighbours(X_true, X_pred[index],k)  # finds neighbours
+        y_pred.append(find_major_weighted_class(neighbours, y_true))  # finds majority class for knn
     ### END CODE HERE ### 
     return y_pred
 
@@ -324,14 +317,13 @@ def evaluate(y_true, y_pred):
     :return
         accuracy
     """
-    ### START CODE HERE ### 
-    response = 0
+    ### START CODE HERE ###
+    result = 0
     for index in range(len(y_true)):
         if y_true[index] == y_pred[index]:
-            response +=1
-    accuracy = response/len(y_true)
-    ### END CODE HERE ### 
-    return accuracy
+            result += 1
+    ### END CODE HERE ###
+    return result/len(y_true)
 
 
 # In[ ]:
