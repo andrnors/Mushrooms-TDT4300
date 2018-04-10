@@ -164,6 +164,14 @@ def train_test_split(X, y, test_size=0.2):
         train-test splits (X-train, X-test, y-train, y-test)
     """
     ### START CODE HERE ###
+    ts = int((1 - test_size) * len(X))  # Compute percentage to split on
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(X)  # shuffle X
+    np.random.seed(1)  # set the random seed for equal shuffle
+    np.random.shuffle(y)  # shuffle y
+
+    X_train, X_test = X[:ts], X[ts:]  # Split X
+    y_train, y_test = y[:ts], y[ts:]  # Split y
 
     ### END CODE HERE ###
     return X_train, X_test, y_train, y_test
@@ -213,6 +221,15 @@ assert len(y_test) == 2681
 
 ### START CODE HERE ###
 
+def splitGini(x):
+    # Mean absolute difference
+    mad = np.abs(np.subtract.outer(x, x)).mean()
+    # Relative mean absolute difference
+    rmad = mad / np.mean(x)
+    # Gini coefficient
+    gini = 0.5 * rmad
+    return gini
+
 ### END CODE HERE ###
 
 
@@ -231,6 +248,10 @@ def fit(X, y):
         trained decision tree (model)
     """
     ### START CODE HERE ### 
+
+    split = splitGini(X)
+    print('GINI: ' + split)
+    classifier = ''
 
     ### END CODE HERE ### 
     return classifier
